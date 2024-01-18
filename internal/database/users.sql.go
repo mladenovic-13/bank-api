@@ -80,6 +80,28 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	return i, err
 }
 
+const getUserByIDAndUsername = `-- name: GetUserByIDAndUsername :one
+SELECT id, username, password, created_at, updated_at FROM users WHERE id=$1 AND username=$2
+`
+
+type GetUserByIDAndUsernameParams struct {
+	ID       uuid.UUID
+	Username string
+}
+
+func (q *Queries) GetUserByIDAndUsername(ctx context.Context, arg GetUserByIDAndUsernameParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByIDAndUsername, arg.ID, arg.Username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserByUsername = `-- name: GetUserByUsername :one
 SELECT id, username, password, created_at, updated_at FROM users WHERE username=$1
 `

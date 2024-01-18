@@ -1,4 +1,16 @@
-package handlers
+package api
+
+import (
+	"net/http"
+
+	"github.com/mladenovic-13/bank-api/models"
+)
+
+type ProtectedHandler func(
+	http.ResponseWriter,
+	*http.Request,
+	models.User,
+)
 
 type SigninRequest struct {
 	Username string `json:"username"`
@@ -13,8 +25,3 @@ type CreateAccountRequest struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 }
-
-// type TransferRequest struct {
-// 	ToAccount int `json:"toAccount"`
-// 	Amount    int `json:"amount"`
-// }

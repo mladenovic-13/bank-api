@@ -1,25 +1,10 @@
-package handlers
+package api
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	"github.com/mladenovic-13/bank-api/internal/database"
-	"github.com/mladenovic-13/bank-api/models"
 )
-
-type RouterCtx struct {
-	DB   *database.Queries
-	User *models.User
-}
-
-func NewRouterCtx(db *database.Queries) *RouterCtx {
-	return &RouterCtx{
-		DB:   db,
-		User: nil,
-	}
-}
 
 func RespondWithError(w http.ResponseWriter, code int, msg string) {
 	if code > 499 {

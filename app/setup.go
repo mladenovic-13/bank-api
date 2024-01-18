@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	"github.com/mladenovic-13/bank-api/api"
 	"github.com/mladenovic-13/bank-api/db"
-	"github.com/mladenovic-13/bank-api/handlers"
 	"github.com/mladenovic-13/bank-api/router"
 )
 
@@ -32,7 +32,7 @@ func SetupAndRunApp() error {
 		panic("failed to create connection to database")
 	}
 
-	routerCtx := handlers.NewRouterCtx(db)
+	apiContext := api.NewServerContext(db)
 
 	app := chi.NewRouter()
 
@@ -47,7 +47,7 @@ func SetupAndRunApp() error {
 
 	app.Use(cors.Handler(corsOptions))
 
-	router.SetupRoutes(app, routerCtx)
+	router.SetupRoutes(app, apiContext)
 
 	err = http.ListenAndServe(":"+port, app)
 
