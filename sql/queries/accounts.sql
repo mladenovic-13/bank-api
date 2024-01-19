@@ -19,5 +19,10 @@ DELETE FROM accounts WHERE id=$1 AND  user_id=$2
 RETURNING *;
 
 -- name: UpdateAccountBalance :one
-UPDATE accounts SET balance = $1 WHERE id = $2
+UPDATE accounts 
+SET 
+  balance = $1,
+  updated_at = $2
+WHERE 
+  id = $3
 RETURNING *;

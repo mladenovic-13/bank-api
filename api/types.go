@@ -28,7 +28,7 @@ type CreateAccountRequest struct {
 }
 
 type DepositRequest struct {
-	Amount   int               `json:"amount"`
+	Amount   float32           `json:"amount"`
 	Currency database.Currency `json:"currency"`
 }
 

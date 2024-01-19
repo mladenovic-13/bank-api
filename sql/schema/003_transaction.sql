@@ -1,7 +1,6 @@
 -- +goose Up
 CREATE TYPE transaction_type AS ENUM ('TRANSFER', 'PAYMENT', 'WITHDRAWAL', 'DEPOSIT');
 
-
 CREATE TABLE transactions(
   id UUID PRIMARY KEY,
   sender_number UUID NOT NULL REFERENCES accounts(number),

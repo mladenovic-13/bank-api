@@ -11,7 +11,7 @@ type Account struct {
 	ID        uuid.UUID         `json:"id"`
 	Name      string            `json:"name"`
 	Number    uuid.UUID         `json:"number"`
-	Balance   int32             `json:"balance"`
+	Balance   string            `json:"balance"`
 	Currency  database.Currency `json:"currency"`
 	UserID    uuid.UUID         `json:"userId"`
 	CreatedAt time.Time         `json:"createdAt"`
@@ -23,7 +23,7 @@ func NewAccount(name string, currency database.Currency, userId uuid.UUID) *Acco
 		ID:        uuid.New(),
 		Name:      name,
 		Number:    uuid.New(),
-		Balance:   0,
+		Balance:   "0.00",
 		Currency:  currency,
 		UserID:    userId,
 		CreatedAt: time.Now(),

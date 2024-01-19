@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -155,6 +158,8 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	// TODO: Create transaction
+
 	account, err := ctx.DB.GetAccountByNumber(r.Context(), accountNumberUUID)
 
 	if err != nil {
@@ -167,11 +172,21 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	balanceNumber, err := strconv.ParseFloat(account.Balance, 32)
+
+	if err != nil {
+		api.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	newBalance := balanceNumber + float64(depositRequest.Amount)
+
 	updatedAccount, err := ctx.DB.UpdateAccountBalance(
 		r.Context(),
 		database.UpdateAccountBalanceParams{
-			ID:      account.ID,
-			Balance: account.Balance + int32(depositRequest.Amount),
+			ID:        account.ID,
+			Balance:   fmt.Sprintf("%0.2f", newBalance),
+			UpdatedAt: time.Now(),
 		},
 	)
 
@@ -219,12 +234,19 @@ func (ctx *HandlerContext) HandleWithdraw(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if account.Balance >= int32(withdrawRequest.Amount) &&
+	balanceNumber, err := strconv.ParseFloat(account.Balance, 32)
+
+	if err != nil {
+		api.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	if balanceNumber >= float64(withdrawRequest.Amount) &&
 		account.Currency == withdrawRequest.Currency {
 		updatedAccount, err := ctx.DB.UpdateAccountBalance(r.Context(),
 			database.UpdateAccountBalanceParams{
 				ID:      accountNumberUUID,
-				Balance: account.Balance - int32(withdrawRequest.Amount),
+				Balance: fmt.Sprintf("%0.2f", balanceNumber-float64(withdrawRequest.Amount)),
 			},
 		)
 
