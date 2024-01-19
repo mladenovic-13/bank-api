@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/mladenovic-13/bank-api/api"
-	"github.com/mladenovic-13/bank-api/db"
 	"github.com/mladenovic-13/bank-api/router"
+	"github.com/mladenovic-13/bank-api/sql"
 )
 
 func SetupAndRunApp() error {
@@ -26,7 +26,7 @@ func SetupAndRunApp() error {
 		return errors.New("failed to load env variable")
 	}
 
-	db, err := db.NewPostgresStore()
+	db, err := sql.NewPostgresStore()
 
 	if err != nil {
 		panic("failed to create connection to database")

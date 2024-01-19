@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,8 +24,8 @@ type CreateAccountParams struct {
 	ID        uuid.UUID
 	Name      string
 	Number    uuid.UUID
-	Balance   sql.NullString
-	Currency  NullCurrency
+	Balance   int32
+	Currency  Currency
 	UserID    uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time

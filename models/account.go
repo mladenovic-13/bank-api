@@ -1,28 +1,54 @@
 package models
 
 import (
-	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/mladenovic-13/bank-api/internal/database"
 )
 
 type Account struct {
-	ID        int       `json:"id"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	UserID    int       `json:"userId"`
-	Number    int64     `json:"number"`
-	Balance   int64     `json:"balance"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        uuid.UUID         `json:"id"`
+	Name      string            `json:"name"`
+	Number    uuid.UUID         `json:"number"`
+	Balance   int32             `json:"balance"`
+	Currency  database.Currency `json:"currency"`
+	UserID    uuid.UUID         `json:"userId"`
+	CreatedAt time.Time         `json:"createdAt"`
+	UpdatedAt time.Time         `json:"updatedAt"`
 }
 
-func NewAccount(firstName, lastName string, userID int) *Account {
+func NewAccount(name string, currency database.Currency, userId uuid.UUID) *Account {
 	return &Account{
-		FirstName: firstName,
-		LastName:  lastName,
-		UserID:    userID,
-		Number:    int64(rand.Intn(1000000)),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		ID:        uuid.New(),
+		Name:      name,
+		Number:    uuid.New(),
+		Balance:   0,
+		Currency:  currency,
+		UserID:    userId,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
+}
+
+func ToAccount(a database.Account) *Account {
+	return &Account{
+		ID:        a.ID,
+		Name:      a.Name,
+		Number:    a.Number,
+		Balance:   a.Balance,
+		Currency:  a.Currency,
+		UserID:    a.UserID,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+	}
+}
+
+func ToAccounts(a []database.Account) []*Account {
+	accounts := []*Account{}
+	for _, dbAccount := range a {
+		accounts = append(accounts, ToAccount(dbAccount))
+	}
+
+	return accounts
 }

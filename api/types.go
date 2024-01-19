@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/mladenovic-13/bank-api/internal/database"
 	"github.com/mladenovic-13/bank-api/models"
 )
 
@@ -22,6 +23,6 @@ type LoginRequest struct {
 }
 
 type CreateAccountRequest struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	Name     string            `json:"name"`
+	Currency database.Currency `json:"currency"`
 }

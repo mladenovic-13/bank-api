@@ -11,10 +11,10 @@ run: build
 	@./bin/bank-api
 
 migrate-up:
-	@goose -dir db/schema postgres "$(DB_URL)" up 
+	@goose -dir sql/schema postgres "$(DB_URL)" up 
 
 migrate-down:
-	@goose -dir db/schema postgres "$(DB_URL)" down 
+	@goose -dir sql/schema postgres "$(DB_URL)" down 
 
 generate:
 	@sqlc generate

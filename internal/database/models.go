@@ -5,7 +5,6 @@
 package database
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"time"
@@ -60,8 +59,8 @@ type Account struct {
 	ID        uuid.UUID
 	Name      string
 	Number    uuid.UUID
-	Balance   sql.NullString
-	Currency  NullCurrency
+	Balance   int32
+	Currency  Currency
 	UserID    uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
