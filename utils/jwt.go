@@ -14,6 +14,7 @@ import (
 type CustomClaims struct {
 	ID       uuid.UUID
 	Username string
+	IsAdmin  bool
 	jwt.RegisteredClaims
 }
 
@@ -23,6 +24,7 @@ func CreateJWT(user *models.User) (string, error) {
 	claims := &CustomClaims{
 		ID:       user.ID,
 		Username: user.Username,
+		IsAdmin:  user.IsAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

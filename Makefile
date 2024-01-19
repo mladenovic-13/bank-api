@@ -1,5 +1,3 @@
-.PHONY: migrate-up migrate-down generate run test
-
 MAIN_FILE := ./cmd/bank-api/main.go
 
 DB_URL := $(shell grep '^DB_URL' .env | cut -d '=' -f2 | tr -d '[:space:]')
@@ -15,6 +13,12 @@ migrate-up:
 
 migrate-down:
 	@goose -dir sql/schema postgres "$(DB_URL)" down 
+
+migrate-status:
+	@goose -dir sql/schema postgres "$(DB_URL)" status 
+
+migrate-reset:
+	@goose -dir sql/schema postgres "$(DB_URL)" reset 
 
 generate:
 	@sqlc generate

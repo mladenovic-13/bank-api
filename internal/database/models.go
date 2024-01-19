@@ -70,6 +70,7 @@ type User struct {
 	ID        uuid.UUID
 	Username  string
 	Password  string
+	Isadmin   bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

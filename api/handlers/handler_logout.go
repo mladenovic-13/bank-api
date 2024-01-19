@@ -16,6 +16,6 @@ func (ctx *HandlerContext) HandleLogout(w http.ResponseWriter, r *http.Request, 
 
 	api.RespondWithJSON(
 		w, http.StatusOK,
-		map[string]string{"message": "login success"},
+		map[string]string{"message": "log out success"},
 	)
 }

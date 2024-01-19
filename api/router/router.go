@@ -14,15 +14,8 @@ func SetupRoutes(router *chi.Mux, serverContext *api.ServerContext) {
 
 	v1Router := chi.NewRouter()
 
-	v1Router.Post("/signin", ctx.HandleSignin)
-	v1Router.Post("/login", ctx.HandleLogin)
-	v1Router.Post("/logout", ctx.WithAuth(ctx.HandleLogout))
-
-	v1Router.Get("/account", ctx.WithAuth(ctx.HandleGetAccounts))
-	v1Router.Post("/account", ctx.WithAuth(ctx.HandleCreateAccount))
-
-	v1Router.Get("/account/{id}", ctx.WithAuth(ctx.HandleGetAccount))
-	v1Router.Delete("/account/{id}", ctx.WithAuth(ctx.HandleDeleteAccount))
+	v1Router.Mount("/", NewAuthRouter(ctx))
+	v1Router.Mount("/account", NewAccountRouter(ctx))
 
 	router.Mount("/v1", v1Router)
 }

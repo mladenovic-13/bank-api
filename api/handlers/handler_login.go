@@ -44,7 +44,7 @@ func (ctx *HandlerContext) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 		api.RespondWithJSON(
 			w, http.StatusOK,
-			map[string]string{"message": "login success"},
+			map[string]string{"message": "log in success"},
 		)
 	} else {
 		api.RespondWithError(w, http.StatusBadRequest, "Wrong password")

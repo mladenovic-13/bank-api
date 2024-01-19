@@ -15,7 +15,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users(id, username, password, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, username, password, created_at, updated_at
+RETURNING id, username, password, isadmin, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -39,6 +39,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.ID,
 		&i.Username,
 		&i.Password,
+		&i.Isadmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -47,7 +48,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUserByID = `-- name: DeleteUserByID :one
 DELETE FROM users WHERE id=$1
-RETURNING id, username, password, created_at, updated_at
+RETURNING id, username, password, isadmin, created_at, updated_at
 `
 
 func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -57,6 +58,7 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) (User, error
 		&i.ID,
 		&i.Username,
 		&i.Password,
+		&i.Isadmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -64,7 +66,7 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, password, created_at, updated_at FROM users WHERE id=$1
+SELECT id, username, password, isadmin, created_at, updated_at FROM users WHERE id=$1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -74,6 +76,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.ID,
 		&i.Username,
 		&i.Password,
+		&i.Isadmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -81,7 +84,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByIDAndUsername = `-- name: GetUserByIDAndUsername :one
-SELECT id, username, password, created_at, updated_at FROM users WHERE id=$1 AND username=$2
+SELECT id, username, password, isadmin, created_at, updated_at FROM users WHERE id=$1 AND username=$2
 `
 
 type GetUserByIDAndUsernameParams struct {
@@ -96,6 +99,7 @@ func (q *Queries) GetUserByIDAndUsername(ctx context.Context, arg GetUserByIDAnd
 		&i.ID,
 		&i.Username,
 		&i.Password,
+		&i.Isadmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -103,7 +107,7 @@ func (q *Queries) GetUserByIDAndUsername(ctx context.Context, arg GetUserByIDAnd
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password, created_at, updated_at FROM users WHERE username=$1
+SELECT id, username, password, isadmin, created_at, updated_at FROM users WHERE username=$1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
@@ -113,6 +117,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.ID,
 		&i.Username,
 		&i.Password,
+		&i.Isadmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
