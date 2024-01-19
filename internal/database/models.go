@@ -55,15 +55,69 @@ func (ns NullCurrency) Value() (driver.Value, error) {
 	return string(ns.Currency), nil
 }
 
+type TransactionType string
+
+const (
+	TransactionTypeTRANSFER   TransactionType = "TRANSFER"
+	TransactionTypePAYMENT    TransactionType = "PAYMENT"
+	TransactionTypeWITHDRAWAL TransactionType = "WITHDRAWAL"
+	TransactionTypeDEPOSIT    TransactionType = "DEPOSIT"
+)
+
+func (e *TransactionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TransactionType(s)
+	case string:
+		*e = TransactionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TransactionType: %T", src)
+	}
+	return nil
+}
+
+type NullTransactionType struct {
+	TransactionType TransactionType
+	Valid           bool // Valid is true if TransactionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTransactionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.TransactionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TransactionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTransactionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TransactionType), nil
+}
+
 type Account struct {
 	ID        uuid.UUID
 	Name      string
 	Number    uuid.UUID
-	Balance   int32
+	Balance   string
 	Currency  Currency
 	UserID    uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Transaction struct {
+	ID              uuid.UUID
+	SenderNumber    uuid.UUID
+	ReceiverNumber  uuid.UUID
+	Amount          string
+	Currency        Currency
+	TransactionType TransactionType
+	CreatedAt       time.Time
 }
 
 type User struct {

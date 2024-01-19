@@ -5,8 +5,8 @@ CREATE TABLE accounts(
   id UUID PRIMARY KEY,
 
   name TEXT NOT NULL,
-  number UUID NOT NULL,
-  balance INT NOT NULL,
+  number UUID UNIQUE NOT NULL,
+  balance DECIMAL(10, 2) NOT NULL,
   currency currency NOT NULL,
 
   user_id UUID NOT NULL,

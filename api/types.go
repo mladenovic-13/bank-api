@@ -31,3 +31,9 @@ type DepositRequest struct {
 	Amount   int               `json:"amount"`
 	Currency database.Currency `json:"currency"`
 }
+
+type SendRequest struct {
+	ToAccountNumber int               `json:"toAccountNumber"`
+	Amount          int               `json:"amount"`
+	Currency        database.Currency `json:"currency"`
+}

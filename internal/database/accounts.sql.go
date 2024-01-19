@@ -24,7 +24,7 @@ type CreateAccountParams struct {
 	ID        uuid.UUID
 	Name      string
 	Number    uuid.UUID
-	Balance   int32
+	Balance   string
 	Currency  Currency
 	UserID    uuid.UUID
 	CreatedAt time.Time
@@ -169,7 +169,7 @@ RETURNING id, name, number, balance, currency, user_id, created_at, updated_at
 `
 
 type UpdateAccountBalanceParams struct {
-	Balance int32
+	Balance string
 	ID      uuid.UUID
 }
 

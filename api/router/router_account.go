@@ -11,6 +11,7 @@ func NewAccountRouter(ctx *RouterContext) *chi.Mux {
 	router.Delete("/{id}", ctx.WithAuth(ctx.HandleDeleteAccount))
 	router.Post("/{number}/deposit", ctx.WithAuth(ctx.HandleDeposit))
 	router.Post("/{number}/withdraw", ctx.WithAuth(ctx.HandleWithdraw))
+	router.Post("/{number}/send", ctx.WithAuth(ctx.HandleSend))
 
 	return router
 }
