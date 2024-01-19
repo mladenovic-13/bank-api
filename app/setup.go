@@ -26,13 +26,13 @@ func SetupAndRunApp() error {
 		return errors.New("failed to load env variable")
 	}
 
-	db, err := sql.NewPostgresStore()
+	db, queries, err := sql.NewPostgresStore()
 
 	if err != nil {
 		panic("failed to create connection to database")
 	}
 
-	apiContext := api.NewServerContext(db)
+	apiContext := api.NewServerContext(db, queries)
 
 	app := chi.NewRouter()
 

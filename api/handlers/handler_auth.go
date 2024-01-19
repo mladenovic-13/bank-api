@@ -23,7 +23,7 @@ func (ctx *HandlerContext) HandleSignin(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := ctx.DB.GetUserByUsername(r.Context(), credentials.Username)
+	user, err := ctx.Queries.GetUserByUsername(r.Context(), credentials.Username)
 
 	if err == nil && user.Username == credentials.Username {
 		api.RespondWithError(w, http.StatusBadRequest, "User already exists")
@@ -37,7 +37,7 @@ func (ctx *HandlerContext) HandleSignin(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	newUser, err := ctx.DB.CreateUser(r.Context(), database.CreateUserParams{
+	newUser, err := ctx.Queries.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
 		Username:  credentials.Username,
 		Password:  hashedPassword,
@@ -64,7 +64,7 @@ func (ctx *HandlerContext) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ctx.DB.GetUserByUsername(r.Context(), credentials.Username)
+	user, err := ctx.Queries.GetUserByUsername(r.Context(), credentials.Username)
 
 	if err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "User does not exist")

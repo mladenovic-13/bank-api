@@ -25,7 +25,7 @@ func (ctx *MiddlewareContext) WithAuth(handler api.ProtectedHandler) http.Handle
 			return
 		}
 
-		user, err := ctx.DB.GetUserByIDAndUsername(
+		user, err := ctx.Queries.GetUserByIDAndUsername(
 			r.Context(),
 			database.GetUserByIDAndUsernameParams{
 				ID:       claims.ID,

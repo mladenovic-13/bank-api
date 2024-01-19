@@ -19,7 +19,7 @@ func (ctx *HandlerContext) HandleGetAccounts(
 	r *http.Request,
 	user models.User,
 ) {
-	accounts, err := ctx.DB.GetAccounts(r.Context(), user.ID)
+	accounts, err := ctx.Queries.GetAccounts(r.Context(), user.ID)
 
 	if err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "Failed to get accounts")
@@ -50,7 +50,7 @@ func (ctx *HandlerContext) HandleCreateAccount(
 		user.ID,
 	)
 
-	account, err := ctx.DB.CreateAccount(
+	account, err := ctx.Queries.CreateAccount(
 		r.Context(),
 		database.CreateAccountParams(newAccount),
 	)
@@ -78,7 +78,7 @@ func (ctx *HandlerContext) HandleGetAccount(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	account, err := ctx.DB.GetAccountByID(
+	account, err := ctx.Queries.GetAccountByID(
 		r.Context(),
 		database.GetAccountByIDParams{
 			ID:     accountUUID,
@@ -113,7 +113,7 @@ func (ctx *HandlerContext) HandleDeleteAccount(
 		return
 	}
 
-	account, err := ctx.DB.DeleteAccount(
+	account, err := ctx.Queries.DeleteAccount(
 		r.Context(),
 		database.DeleteAccountParams{
 			ID:     accountUUID,
@@ -160,7 +160,7 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 
 	// TODO: Create transaction
 
-	account, err := ctx.DB.GetAccountByNumber(r.Context(), accountNumberUUID)
+	account, err := ctx.Queries.GetAccountByNumber(r.Context(), accountNumberUUID)
 
 	if err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "Failed to get account")
@@ -181,7 +181,7 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 
 	newBalance := balanceNumber + float64(depositRequest.Amount)
 
-	updatedAccount, err := ctx.DB.UpdateAccountBalance(
+	updatedAccount, err := ctx.Queries.UpdateAccountBalance(
 		r.Context(),
 		database.UpdateAccountBalanceParams{
 			ID:        account.ID,
@@ -227,7 +227,7 @@ func (ctx *HandlerContext) HandleWithdraw(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	account, err := ctx.DB.GetAccountByNumber(r.Context(), accountNumberUUID)
+	account, err := ctx.Queries.GetAccountByNumber(r.Context(), accountNumberUUID)
 
 	if err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "Failed to get account")
@@ -243,7 +243,7 @@ func (ctx *HandlerContext) HandleWithdraw(w http.ResponseWriter, r *http.Request
 
 	if balanceNumber >= float64(withdrawRequest.Amount) &&
 		account.Currency == withdrawRequest.Currency {
-		updatedAccount, err := ctx.DB.UpdateAccountBalance(r.Context(),
+		updatedAccount, err := ctx.Queries.UpdateAccountBalance(r.Context(),
 			database.UpdateAccountBalanceParams{
 				ID:      accountNumberUUID,
 				Balance: fmt.Sprintf("%0.2f", balanceNumber-float64(withdrawRequest.Amount)),
@@ -284,7 +284,7 @@ func (ctx *HandlerContext) HandleSend(w http.ResponseWriter, r *http.Request, us
 	// 	return
 	// }
 
-	// account, err := ctx.DB.GetAccountByNumber(r.Context(), accountNumberUUID)
+	// account, err := ctx.Queries.GetAccountByNumber(r.Context(), accountNumberUUID)
 
 	// if err != nil {
 	// 	api.RespondWithError(w, http.StatusBadRequest, "Failed to get account")

@@ -1,13 +1,19 @@
 package middlewares
 
-import "github.com/mladenovic-13/bank-api/internal/database"
+import (
+	"database/sql"
+
+	"github.com/mladenovic-13/bank-api/internal/database"
+)
 
 type MiddlewareContext struct {
-	DB *database.Queries
+	DB      *sql.DB
+	Queries *database.Queries
 }
 
-func NewMiddlewareContext(db *database.Queries) *MiddlewareContext {
+func NewMiddlewareContext(db *sql.DB, queries *database.Queries) *MiddlewareContext {
 	return &MiddlewareContext{
-		DB: db,
+		DB:      db,
+		Queries: queries,
 	}
 }

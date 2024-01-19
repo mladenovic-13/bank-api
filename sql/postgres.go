@@ -10,20 +10,20 @@ import (
 	"github.com/mladenovic-13/bank-api/internal/database"
 )
 
-func NewPostgresStore() (*database.Queries, error) {
+func NewPostgresStore() (*sql.DB, *database.Queries, error) {
 	url := os.Getenv("DB_URL")
 
 	if url == "" {
-		return nil, errors.New("failed to load db url env")
+		return nil, nil, errors.New("failed to load db url env")
 	}
 
-	connection, err := sql.Open("postgres", url)
+	db, err := sql.Open("postgres", url)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	db := database.New(connection)
+	queries := database.New(db)
 
-	return db, nil
+	return db, queries, nil
 }

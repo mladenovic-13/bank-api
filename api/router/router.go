@@ -27,7 +27,13 @@ type RouterContext struct {
 
 func newRouterContext(serverContext *api.ServerContext) *RouterContext {
 	return &RouterContext{
-		HandlerContext:    handlers.NewHandlerContext(serverContext.DB),
-		MiddlewareContext: middlewares.NewMiddlewareContext(serverContext.DB),
+		HandlerContext: handlers.NewHandlerContext(
+			serverContext.DB,
+			serverContext.Queries,
+		),
+		MiddlewareContext: middlewares.NewMiddlewareContext(
+			serverContext.DB,
+			serverContext.Queries,
+		),
 	}
 }
