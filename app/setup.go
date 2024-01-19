@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/mladenovic-13/bank-api/api"
-	"github.com/mladenovic-13/bank-api/router"
+	"github.com/mladenovic-13/bank-api/api/router"
 	"github.com/mladenovic-13/bank-api/sql"
 )
 
