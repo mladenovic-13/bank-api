@@ -12,6 +12,7 @@ import (
 	"github.com/mladenovic-13/bank-api/api"
 	"github.com/mladenovic-13/bank-api/internal/database"
 	"github.com/mladenovic-13/bank-api/models"
+	"github.com/mladenovic-13/bank-api/utils"
 )
 
 func (ctx *HandlerContext) HandleGetAccounts(
@@ -158,8 +159,6 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	// TODO: Create transaction
-
 	account, err := ctx.Queries.GetAccountByNumber(r.Context(), accountNumberUUID)
 
 	if err != nil {
@@ -181,12 +180,23 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 
 	newBalance := balanceNumber + float64(depositRequest.Amount)
 
-	updatedAccount, err := ctx.Queries.UpdateAccountBalance(
+	updatedAccount, transaction, err := utils.DepositTransaction(
 		r.Context(),
+		ctx.DB,
+		ctx.Queries,
 		database.UpdateAccountBalanceParams{
 			ID:        account.ID,
 			Balance:   fmt.Sprintf("%0.2f", newBalance),
 			UpdatedAt: time.Now(),
+		},
+		database.CreateTransactionParams{
+			ID:              uuid.New(),
+			SenderNumber:    account.Number,
+			ReceiverNumber:  account.Number,
+			Amount:          fmt.Sprintf("%0.2f", float64(depositRequest.Amount)),
+			Currency:        depositRequest.Currency,
+			TransactionType: database.TransactionTypeDEPOSIT,
+			CreatedAt:       time.Now(),
 		},
 	)
 
@@ -195,7 +205,17 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	api.RespondWithJSON(w, http.StatusOK, models.ToAccount(updatedAccount))
+	type ResponseJSON struct {
+		Account     models.Account     `json:"account"`
+		Transaction models.Transaction `json:"transaction"`
+	}
+
+	api.RespondWithJSON(w, http.StatusOK,
+		ResponseJSON{
+			Account:     *updatedAccount,
+			Transaction: *transaction,
+		},
+	)
 }
 
 func (ctx *HandlerContext) HandleWithdraw(w http.ResponseWriter, r *http.Request, user models.User) {
