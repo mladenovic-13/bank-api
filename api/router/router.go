@@ -8,14 +8,21 @@ import (
 )
 
 func SetupRoutes(router *chi.Mux, serverContext *api.ServerContext) {
+	regularMiddlewares := chi.Middlewares{
+		middlewares.RequestLogger,
+		middlewares.RecoverPanic,
+	}
+	middlewares.UseMiddlewares(router, regularMiddlewares)
+
 	ctx := newRouterContext(serverContext)
 
 	router.Get("/healthz", ctx.HandleHealthz)
 
 	v1Router := chi.NewRouter()
 
-	v1Router.Mount("/", NewAuthRouter(ctx))
-	v1Router.Mount("/account", NewAccountRouter(ctx))
+	v1Router.Mount("/", ctx.NewAuthRouter())
+	v1Router.Mount("/account", ctx.NewAccountRouter())
+	v1Router.Mount("/admin", ctx.NewAdminRouter())
 
 	router.Mount("/v1", v1Router)
 }

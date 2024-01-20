@@ -14,40 +14,138 @@ import (
 	"github.com/mladenovic-13/bank-api/models"
 )
 
+type DepostitResult struct {
+	UpdatedAccount *models.Account     `json:"account"`
+	Transaction    *models.Transaction `json:"transaction"`
+}
+
 func ExecDepositTransaction(
 	ctx context.Context,
 	db *sql.DB,
 	queries *database.Queries,
-	accountParams database.UpdateAccountBalanceParams,
-	transactionParams database.CreateTransactionParams,
-) (*models.Account, *models.Transaction, error) {
+	account *database.Account,
+	depositRequest *api.DepositRequest,
+) (*WithdrawResult, error) {
 	tx, err := db.Begin()
 
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	defer tx.Rollback()
 
 	qtx := queries.WithTx(tx)
 
-	account, err := qtx.UpdateAccountBalance(ctx, accountParams)
+	balanceNumber, err := strconv.ParseFloat(account.Balance, 32)
+
+	newBalance := balanceNumber + depositRequest.Amount
 
 	if err != nil {
-		return nil, nil, err
-
+		return nil, err
 	}
 
-	transaction, err := qtx.CreateTransaction(ctx, transactionParams)
+	updatedAccount, err := qtx.UpdateAccountBalance(ctx,
+		database.UpdateAccountBalanceParams{
+			ID:        account.ID,
+			Balance:   fmt.Sprintf("%0.2f", newBalance),
+			UpdatedAt: time.Now(),
+		},
+	)
 
 	if err != nil {
-		return nil, nil, err
-
+		return nil, err
 	}
 
-	return models.ToAccount(account),
-		models.ToTransaction(transaction),
-		tx.Commit()
+	transaction, err := qtx.CreateTransaction(
+		ctx,
+		database.CreateTransactionParams{
+			ID:              uuid.New(),
+			SenderNumber:    account.Number,
+			ReceiverNumber:  account.Number,
+			Amount:          fmt.Sprintf("%0.2f", depositRequest.Amount),
+			Currency:        depositRequest.Currency,
+			TransactionType: database.TransactionTypeDEPOSIT,
+			CreatedAt:       time.Now(),
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := &WithdrawResult{
+		UpdatedAccount: models.ToAccount(updatedAccount),
+		Transaction:    models.ToTransaction(transaction),
+	}
+
+	return result, tx.Commit()
+}
+
+type WithdrawResult struct {
+	UpdatedAccount *models.Account     `json:"account"`
+	Transaction    *models.Transaction `json:"transaction"`
+}
+
+func ExecWithdrawTransaction(
+	ctx context.Context,
+	db *sql.DB,
+	queries *database.Queries,
+	account *database.Account,
+	withdrawRequest *api.DepositRequest,
+) (*WithdrawResult, error) {
+	tx, err := db.Begin()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback()
+
+	qtx := queries.WithTx(tx)
+
+	balanceNumber, err := strconv.ParseFloat(account.Balance, 32)
+
+	newBalance := balanceNumber - withdrawRequest.Amount
+
+	if err != nil {
+		return nil, err
+	}
+
+	updatedAccount, err := qtx.UpdateAccountBalance(ctx,
+		database.UpdateAccountBalanceParams{
+			ID:        account.ID,
+			Balance:   fmt.Sprintf("%0.2f", newBalance),
+			UpdatedAt: time.Now(),
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transaction, err := qtx.CreateTransaction(
+		ctx,
+		database.CreateTransactionParams{
+			ID:              uuid.New(),
+			SenderNumber:    account.Number,
+			ReceiverNumber:  account.Number,
+			Amount:          fmt.Sprintf("%0.2f", withdrawRequest.Amount),
+			Currency:        withdrawRequest.Currency,
+			TransactionType: database.TransactionTypeWITHDRAWAL,
+			CreatedAt:       time.Now(),
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := &WithdrawResult{
+		UpdatedAccount: models.ToAccount(updatedAccount),
+		Transaction:    models.ToTransaction(transaction),
+	}
+
+	return result, tx.Commit()
 }
 
 type SendTransactionResult struct {

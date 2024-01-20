@@ -33,6 +33,11 @@ type DepositRequest struct {
 	Currency database.Currency `json:"currency"`
 }
 
+type WithdrawRequest struct {
+	Amount   float64           `json:"amount"`
+	Currency database.Currency `json:"currency"`
+}
+
 type SendRequest struct {
 	ToAccountNumber uuid.UUID         `json:"toAccountNumber"`
 	Amount          float64           `json:"amount"`

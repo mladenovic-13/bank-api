@@ -2,7 +2,7 @@ package router
 
 import "github.com/go-chi/chi/v5"
 
-func NewAuthRouter(ctx *RouterContext) *chi.Mux {
+func (ctx *RouterContext) NewAuthRouter() *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Post("/signin", ctx.HandleSignin)
