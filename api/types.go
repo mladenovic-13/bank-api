@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/mladenovic-13/bank-api/internal/database"
 	"github.com/mladenovic-13/bank-api/models"
 )
@@ -28,12 +29,12 @@ type CreateAccountRequest struct {
 }
 
 type DepositRequest struct {
-	Amount   float32           `json:"amount"`
+	Amount   float64           `json:"amount"`
 	Currency database.Currency `json:"currency"`
 }
 
 type SendRequest struct {
-	ToAccountNumber int               `json:"toAccountNumber"`
-	Amount          int               `json:"amount"`
+	ToAccountNumber uuid.UUID         `json:"toAccountNumber"`
+	Amount          float64           `json:"amount"`
 	Currency        database.Currency `json:"currency"`
 }

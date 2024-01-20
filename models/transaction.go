@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,6 +28,17 @@ func ToTransaction(t database.Transaction) *Transaction {
 		TransactionType: t.TransactionType,
 		CreatedAt:       t.CreatedAt,
 	}
+}
+
+func (t *Transaction) ToString() string {
+	return fmt.Sprintf(
+		"%s\n From: %s\n To: %s\n Amount: %s, Currency: %s\n",
+		t.TransactionType,
+		t.SenderNumber.String(),
+		t.ReceiverNumber.String(),
+		t.Amount,
+		t.Currency,
+	)
 }
 
 func ToTransactions(t []database.Transaction) []*Transaction {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -178,9 +179,9 @@ func (ctx *HandlerContext) HandleDeposit(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	newBalance := balanceNumber + float64(depositRequest.Amount)
+	newBalance := balanceNumber + depositRequest.Amount
 
-	updatedAccount, transaction, err := utils.DepositTransaction(
+	updatedAccount, transaction, err := utils.ExecDepositTransaction(
 		r.Context(),
 		ctx.DB,
 		ctx.Queries,
@@ -280,35 +281,76 @@ func (ctx *HandlerContext) HandleWithdraw(w http.ResponseWriter, r *http.Request
 }
 
 func (ctx *HandlerContext) HandleSend(w http.ResponseWriter, r *http.Request, user models.User) {
-	accountNumber := chi.URLParam(r, "number")
+	senderNumber := chi.URLParam(r, "number")
 
-	if accountNumber == "" {
+	if senderNumber == "" {
 		api.RespondWithError(w, http.StatusBadRequest, "Invalid account number")
 		return
 	}
 
-	// accountNumberUUID, err := uuid.Parse(accountNumber)
+	senderNumberUUID, err := uuid.Parse(senderNumber)
 
-	// if err != nil {
-	// 	api.RespondWithError(w, http.StatusBadRequest, "Account number is not valid UUID")
-	// 	return
-	// }
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Invalid account number")
+		return
+	}
 
-	// sendRequest := new(api.SendRequest)
+	sendRequest := new(api.SendRequest)
 
-	// err = json.NewDecoder(r.Body).Decode(sendRequest)
-	// defer r.Body.Close()
+	err = json.NewDecoder(r.Body).Decode(sendRequest)
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Invalid request data")
+		return
+	}
+	defer r.Body.Close()
 
-	// if err != nil {
-	// 	api.RespondWithError(w, http.StatusBadRequest, "Invalid request data")
-	// 	return
-	// }
+	senderAccount, err := ctx.Queries.GetAccountByNumber(r.Context(), senderNumberUUID)
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Internal server error")
+		return
+	}
+	receiverAccount, err := ctx.Queries.GetAccountByNumber(r.Context(), sendRequest.ToAccountNumber)
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Internal server error")
+		return
+	}
 
-	// account, err := ctx.Queries.GetAccountByNumber(r.Context(), accountNumberUUID)
+	if senderAccount.Currency != sendRequest.Currency {
+		api.RespondWithError(w, http.StatusBadRequest, "Can not send this currency from account")
+		return
+	}
 
-	// if err != nil {
-	// 	api.RespondWithError(w, http.StatusBadRequest, "Failed to get account")
-	// 	return
-	// }
-	api.RespondWithError(w, http.StatusOK, "Not implemented yet")
+	if receiverAccount.Currency != sendRequest.Currency {
+		api.RespondWithError(w, http.StatusBadRequest, "Can not receiver this currency to account")
+		return
+	}
+
+	senderBalance, err := strconv.ParseFloat(senderAccount.Balance, 32)
+
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Internal server error")
+		return
+	}
+
+	if senderBalance < sendRequest.Amount {
+		api.RespondWithError(w, http.StatusBadRequest, "You don't have enough funds in your account")
+		return
+	}
+
+	transactionResult, err := utils.ExecSendTransaction(
+		r.Context(),
+		ctx.DB,
+		ctx.Queries,
+		&senderAccount,
+		&receiverAccount,
+		sendRequest,
+	)
+
+	if err != nil {
+		log.Printf("Transaction: %+v\n", err)
+		api.RespondWithError(w, http.StatusInternalServerError, "Failed to execute transaction")
+		return
+	}
+
+	api.RespondWithJSON(w, http.StatusOK, transactionResult)
 }
