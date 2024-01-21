@@ -2,34 +2,23 @@ package app
 
 import (
 	"errors"
-	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	"github.com/mladenovic-13/bank-api/api"
 	"github.com/mladenovic-13/bank-api/api/router"
 	"github.com/mladenovic-13/bank-api/sql"
 )
 
-func SetupAndRunApp() error {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		panic("failed to load .env")
+func SetupServer(url string) (*chi.Mux, error) {
+	if url == "" {
+		return nil, errors.New("failed to load db url env")
 	}
 
-	port := os.Getenv("PORT")
-
-	if port == "" {
-		return errors.New("failed to load env variable")
-	}
-
-	db, queries, err := sql.NewPostgresStore()
+	db, queries, err := sql.NewPostgresStore(url)
 
 	if err != nil {
-		panic("failed to create connection to database")
+		return nil, err
 	}
 
 	apiContext := api.NewServerContext(db, queries)
@@ -49,11 +38,5 @@ func SetupAndRunApp() error {
 
 	router.SetupRoutes(app, apiContext)
 
-	err = http.ListenAndServe(":"+port, app)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return app, nil
 }

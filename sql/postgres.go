@@ -2,22 +2,14 @@ package sql
 
 import (
 	"database/sql"
-	"errors"
-	"os"
 
 	_ "github.com/lib/pq"
 
 	"github.com/mladenovic-13/bank-api/internal/database"
 )
 
-func NewPostgresStore() (*sql.DB, *database.Queries, error) {
-	url := os.Getenv("DB_URL")
-
-	if url == "" {
-		return nil, nil, errors.New("failed to load db url env")
-	}
-
-	db, err := sql.Open("postgres", url)
+func NewPostgresStore(connectionString string) (*sql.DB, *database.Queries, error) {
+	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
 		return nil, nil, err

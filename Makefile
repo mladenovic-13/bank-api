@@ -1,9 +1,9 @@
-MAIN_FILE := ./cmd/bank-api/main.go
+APP_MAIN_FILE := ./cmd/bank-api/main.go
 
 DB_URL := $(shell grep '^DB_URL' .env | cut -d '=' -f2 | tr -d '[:space:]')
 
 build:
-	@go build -o bin/bank-api $(MAIN_FILE)
+	@go build -o bin/bank-api $(APP_MAIN_FILE)
 
 run: build
 	@./bin/bank-api

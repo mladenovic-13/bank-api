@@ -46,6 +46,7 @@ func (ctx *HandlerContext) HandleSignin(w http.ResponseWriter, r *http.Request) 
 	})
 
 	if err != nil {
+		println(err.Error())
 		api.RespondWithError(w, http.StatusBadRequest, "Failed to create user")
 		return
 	}
