@@ -3,6 +3,7 @@ package test
 import (
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -17,6 +18,14 @@ type TestServer struct {
 
 func newTestServer(t *testing.T, h http.Handler) *TestServer {
 	ts := httptest.NewServer(h)
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts.Client().Jar = jar
+
 	return &TestServer{ts}
 }
 
