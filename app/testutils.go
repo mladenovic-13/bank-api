@@ -8,14 +8,14 @@ import (
 	"github.com/mladenovic-13/bank-api/sql"
 )
 
-func SetupServer(url string) (*chi.Mux, error) {
-	db, queries, err := sql.NewPostgresStore(url)
+func SetupTestServe(url string) (*chi.Mux, func() error, error) {
+	store, err := sql.NewTestPostgresStore(url)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	apiContext := api.NewServerContext(db, queries)
+	apiContext := api.NewServerContext(store.DB, store.Queries)
 
 	app := chi.NewRouter()
 
@@ -32,5 +32,5 @@ func SetupServer(url string) (*chi.Mux, error) {
 
 	router.SetupRoutes(app, apiContext)
 
-	return app, nil
+	return app, store.Teardown, nil
 }

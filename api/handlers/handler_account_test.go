@@ -8,7 +8,7 @@ import (
 	"github.com/mladenovic-13/bank-api/test"
 )
 
-func TestHandleHealthz(t *testing.T) {
+func TestHandleGetAccounts(t *testing.T) {
 	ts := test.RunTestServer(t)
 	defer ts.Server.Close()
 	defer ts.Teardown()
@@ -18,7 +18,6 @@ func TestHandleHealthz(t *testing.T) {
 	if code != http.StatusOK {
 		t.Errorf("want %d; got %d\n", http.StatusOK, code)
 	}
-
 	var stringValue string
 	err := json.Unmarshal(body, &stringValue)
 

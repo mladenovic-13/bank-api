@@ -13,10 +13,11 @@ import (
 )
 
 type TestServer struct {
-	*httptest.Server
+	Server   *httptest.Server
+	Teardown func() error
 }
 
-func newTestServer(t *testing.T, h http.Handler) *TestServer {
+func newTestServer(t *testing.T, td func() error, h http.Handler) *TestServer {
 	ts := httptest.NewServer(h)
 
 	jar, err := cookiejar.New(nil)
@@ -26,35 +27,35 @@ func newTestServer(t *testing.T, h http.Handler) *TestServer {
 
 	ts.Client().Jar = jar
 
-	return &TestServer{ts}
+	return &TestServer{ts, td}
 }
 
 func RunTestServer(t *testing.T) *TestServer {
 	err := godotenv.Load("../../.env")
 
-	url := os.Getenv("DB_URL")
+	url := os.Getenv("TEST_DB_URL")
 
 	if url == "" {
-		t.Fatal("failed to load DB_URL env")
+		t.Fatal("failed to load TEST_DB_URL env")
 	}
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	router, err := app.SetupServer(url)
+	router, teardown, err := app.SetupTestServe(url)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ts := newTestServer(t, router)
+	ts := newTestServer(t, teardown, router)
 
 	return ts
 }
 
 func (ts *TestServer) Get(t *testing.T, urlPath string) (int, http.Header, []byte) {
-	rs, err := ts.Client().Get(ts.URL + urlPath)
+	rs, err := ts.Server.Client().Get(ts.Server.URL + urlPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +70,7 @@ func (ts *TestServer) Get(t *testing.T, urlPath string) (int, http.Header, []byt
 }
 
 func (ts *TestServer) Post(t *testing.T, urlPath string, body io.Reader) (int, http.Header, []byte) {
-	rs, err := ts.Client().Post(ts.URL+urlPath, "application/json", body)
+	rs, err := ts.Server.Client().Post(ts.Server.URL+urlPath, "application/json", body)
 	if err != nil {
 		t.Fatal(err)
 	}
