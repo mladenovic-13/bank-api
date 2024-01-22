@@ -14,6 +14,12 @@ import (
 	"github.com/mladenovic-13/bank-api/utils"
 )
 
+// @Summary	Retrieve user accounts
+// @Tags		accounts
+// @Produce	json
+// @Success	200	{array}	models.Account	"OK"
+// @Failure	404	{array}	models.Account	"Not Found"
+// @Router		/v1/account [get]
 func (ctx *HandlerContext) HandleGetAccounts(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -29,40 +35,16 @@ func (ctx *HandlerContext) HandleGetAccounts(
 	api.RespondWithJSON(w, http.StatusOK, models.ToAccounts(accounts))
 }
 
-func (ctx *HandlerContext) HandleCreateAccount(
-	w http.ResponseWriter,
-	r *http.Request,
-	user models.User,
-) {
-	createAccountRequest := new(api.CreateAccountRequest)
-
-	err := json.NewDecoder(r.Body).Decode(createAccountRequest)
-	defer r.Body.Close()
-
-	if err != nil {
-		api.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
-		return
-	}
-
-	newAccount := *models.NewAccount(
-		createAccountRequest.Name,
-		createAccountRequest.Currency,
-		user.ID,
-	)
-
-	account, err := ctx.Queries.CreateAccount(
-		r.Context(),
-		database.CreateAccountParams(newAccount),
-	)
-
-	if err != nil {
-		api.RespondWithError(w, http.StatusBadRequest, "Failed to create account")
-		return
-	}
-
-	api.RespondWithJSON(w, http.StatusCreated, models.ToAccount(account))
-}
-
+// @Summary	Get account
+// @Tags		accounts
+// @Produce	json
+// @Security	JwtAuth
+// @Param		id	path		string				true	"Sender account ID(UUID)"
+// @Success	200	{object}	models.Account		"account"
+// @Failure	400	{object}	api.ErrorResponse	"Bad Request"
+// @Failure	401	{object}	api.ErrorResponse	"Unauthorized"
+// @Failure	500	{object}	api.ErrorResponse	"Internal Server Error"
+// @Router		/v1/account/{id} [get]
 func (ctx *HandlerContext) HandleGetAccount(w http.ResponseWriter, r *http.Request, user models.User) {
 	accountID := chi.URLParam(r, "id")
 
@@ -94,6 +76,61 @@ func (ctx *HandlerContext) HandleGetAccount(w http.ResponseWriter, r *http.Reque
 	api.RespondWithJSON(w, http.StatusOK, models.ToAccount(account))
 }
 
+// @Summary	Create new account
+// @Tags			accounts
+// @Accept		json
+// @Produce		json
+// @Security	JwtAuth
+// @Param			Name			body		string	true  "Account name" SchemaExample("Tekuci racun")
+// @Param			Currency	body		string	true	"Account currency"	Enums("USD", "EUR", "RSD")
+// @Success		201			{object}	models.Account		"account"
+// @Failure		400			{object}	api.ErrorResponse	"Bad Request"
+// @Failure		401			{object}	api.ErrorResponse	"Unauthorized"
+// @Failure		500			{object}	api.ErrorResponse	"Internal Server Error"
+// @Router	/v1/account [post]
+func (ctx *HandlerContext) HandleCreateAccount(
+	w http.ResponseWriter,
+	r *http.Request,
+	user models.User,
+) {
+	createAccountRequest := new(api.CreateAccountRequest)
+	err := json.NewDecoder(r.Body).Decode(createAccountRequest)
+	defer r.Body.Close()
+
+	if err != nil {
+		api.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	newAccount := *models.NewAccount(
+		createAccountRequest.Name,
+		createAccountRequest.Currency,
+		user.ID,
+	)
+
+	account, err := ctx.Queries.CreateAccount(
+		r.Context(),
+		database.CreateAccountParams(newAccount),
+	)
+
+	if err != nil {
+		api.RespondWithError(w, http.StatusBadRequest, "Failed to create account")
+		return
+	}
+
+	api.RespondWithJSON(w, http.StatusCreated, models.ToAccount(account))
+}
+
+// @Summary	Delete account
+// @Tags		accounts
+// @Produce	json
+// @Security	JwtAuth
+// @Param		id	path		string				true	"Sender account ID(UUID)"
+// @Success	200	{object}	models.Account		"account"
+// @Failure	400	{object}	api.ErrorResponse	"Bad Request"
+// @Failure	401	{object}	api.ErrorResponse	"Unauthorized"
+// @Failure	500	{object}	api.ErrorResponse	"Internal Server Error"
+// @Router		/v1/account/{id} [delete]
 func (ctx *HandlerContext) HandleDeleteAccount(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -128,7 +165,21 @@ func (ctx *HandlerContext) HandleDeleteAccount(
 	api.RespondWithJSON(w, http.StatusOK, models.ToAccount(account))
 }
 
+// @Summary	Send money to account
+// @Tags		accounts
+// @Accept		json
+// @Produce	json
+// @Param		number			path	string				true	"Sender account number (UUID)"
+// @Param		ToAccountNumber	body	string				true	"Receiver account number (UUID)"
+// @Param		Currency		body	database.Currency	true	"Receiver account currency"	Enum(USD, EUR, RSD)
+// @Security	JwtAuth
+// @Success	201	{object}	models.Account		"account"
+// @Failure	400	{object}	api.ErrorResponse	"Bad Request"
+// @Failure	401	{object}	api.ErrorResponse	"Unauthorized"
+// @Failure	500	{object}	api.ErrorResponse	"Internal Server Error"
+// @Router		/v1/account/{number}/send [post]
 func (ctx *HandlerContext) HandleSend(w http.ResponseWriter, r *http.Request, user models.User) {
+	// TODO: Remove currency from body, nonsense hah
 	senderNumber := chi.URLParam(r, "number")
 
 	if senderNumber == "" {

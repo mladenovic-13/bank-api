@@ -1,0 +1,213 @@
+definitions:
+  api.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  database.Currency:
+    enum:
+    - EUR
+    - USD
+    - RSD
+    type: string
+    x-enum-varnames:
+    - CurrencyEUR
+    - CurrencyUSD
+    - CurrencyRSD
+  models.Account:
+    properties:
+      balance:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        $ref: '#/definitions/database.Currency'
+      id:
+        type: string
+      name:
+        type: string
+      number:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /v1/account:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Account'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            items:
+              $ref: '#/definitions/models.Account'
+            type: array
+      summary: Retrieve user accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Account name
+        in: body
+        name: Name
+        required: true
+        schema:
+          example: '"Tekuci racun"'
+          type: string
+      - description: Account currency
+        in: body
+        name: Currency
+        required: true
+        schema:
+          enum:
+          - '"USD"'
+          - '"EUR"'
+          - '"RSD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: account
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - JwtAuth: []
+      summary: Create new account
+      tags:
+      - accounts
+  /v1/account/{id}:
+    delete:
+      parameters:
+      - description: Sender account ID(UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: account
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - JwtAuth: []
+      summary: Delete account
+      tags:
+      - accounts
+    get:
+      parameters:
+      - description: Sender account ID(UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: account
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - JwtAuth: []
+      summary: Get account
+      tags:
+      - accounts
+  /v1/account/{number}/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sender account number (UUID)
+        in: path
+        name: number
+        required: true
+        type: string
+      - description: Receiver account number (UUID)
+        in: body
+        name: ToAccountNumber
+        required: true
+        schema:
+          type: string
+      - description: Receiver account currency
+        in: body
+        name: Currency
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: account
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - JwtAuth: []
+      summary: Send money to account
+      tags:
+      - accounts
+swagger: "2.0"

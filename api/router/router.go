@@ -1,10 +1,14 @@
 package router
 
 import (
+	_ "embed"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/mladenovic-13/bank-api/api"
 	"github.com/mladenovic-13/bank-api/api/handlers"
 	"github.com/mladenovic-13/bank-api/api/middlewares"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func SetupRoutes(router *chi.Mux, serverContext *api.ServerContext) {
@@ -18,7 +22,15 @@ func SetupRoutes(router *chi.Mux, serverContext *api.ServerContext) {
 
 	router.Get("/healthz", ctx.HandleHealthz)
 
+	router.Get("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./docs/swagger.json")
+	})
+
 	v1Router := chi.NewRouter()
+
+	v1Router.Get("/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8000/docs/swagger.json"),
+	))
 
 	v1Router.Mount("/", ctx.NewAuthRouter())
 	v1Router.Mount("/account", ctx.NewAccountRouter())
