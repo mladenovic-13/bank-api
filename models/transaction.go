@@ -1,51 +1,43 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mladenovic-13/bank-api/internal/database"
+)
+
+type TransactionType string
+
+const (
+	TransactionTypeTRANSFER   TransactionType = "TRANSFER"
+	TransactionTypePAYMENT    TransactionType = "PAYMENT"
+	TransactionTypeWITHDRAWAL TransactionType = "WITHDRAWAL"
+	TransactionTypeDEPOSIT    TransactionType = "DEPOSIT"
 )
 
 type Transaction struct {
-	ID              uuid.UUID                `json:"id"`
-	SenderNumber    uuid.UUID                `json:"senderNumber"`
-	ReceiverNumber  uuid.UUID                `json:"receiverNumber"`
-	Amount          string                   `json:"amount"`
-	Currency        database.Currency        `json:"currency"`
-	TransactionType database.TransactionType `json:"transactionType"`
-	CreatedAt       time.Time                `json:"createdAt"`
+	ID              uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
+	Sender          uuid.UUID       `gorm:"type:uuid;not null" json:"sender"`
+	Receiver        uuid.UUID       `gorm:"type:uuid;not null" json:"receiver"`
+	Amount          float32         `gorm:"type:decimal(10,2);not null" json:"amount"`
+	Currency        Currency        `gorm:"not null" json:"currency"`
+	TransactionType TransactionType `gorm:"not null" json:"transactionType"`
+	CreatedAt       time.Time       `gorm:"not null" json:"createdAt"`
 }
 
-func ToTransaction(t database.Transaction) *Transaction {
+func NewTransaction(
+	sender, receiver uuid.UUID,
+	amount float32,
+	currency Currency,
+	transactionType TransactionType,
+) *Transaction {
 	return &Transaction{
-		ID:              t.ID,
-		SenderNumber:    t.SenderNumber,
-		ReceiverNumber:  t.ReceiverNumber,
-		Amount:          t.Amount,
-		Currency:        t.Currency,
-		TransactionType: t.TransactionType,
-		CreatedAt:       t.CreatedAt,
+		ID:              uuid.New(),
+		Sender:          sender,
+		Receiver:        receiver,
+		Amount:          amount,
+		Currency:        currency,
+		TransactionType: transactionType,
+		CreatedAt:       time.Now(),
 	}
-}
-
-func (t *Transaction) ToString() string {
-	return fmt.Sprintf(
-		"%s\n From: %s\n To: %s\n Amount: %s, Currency: %s\n",
-		t.TransactionType,
-		t.SenderNumber.String(),
-		t.ReceiverNumber.String(),
-		t.Amount,
-		t.Currency,
-	)
-}
-
-func ToTransactions(t []database.Transaction) []*Transaction {
-	accounts := []*Transaction{}
-	for _, dbTransaction := range t {
-		accounts = append(accounts, ToTransaction(dbTransaction))
-	}
-
-	return accounts
 }

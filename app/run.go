@@ -2,42 +2,41 @@ package app
 
 import (
 	"errors"
-	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/mladenovic-13/bank-api/database"
 )
 
 func Run() error {
 	err := godotenv.Load(".env")
-
 	if err != nil {
-		panic("failed to load .env")
+		return errors.New("failed to load environment variables")
 	}
 
 	port := os.Getenv("PORT")
-
 	if port == "" {
-		return errors.New("failed to load port env variable")
+		return errors.New("missing PORT environment variable")
 	}
 
-	url := os.Getenv("DB_URL")
-
-	if url == "" {
-		return errors.New("failed to load DB_URL env")
+	connStr := os.Getenv("DB_URL")
+	if connStr == "" {
+		return errors.New("missing DB_URL environment variable")
 	}
 
-	app, err := SetupServer(url)
+	db, err := database.ConnectDB(connStr)
 
 	if err != nil {
 		return err
 	}
 
-	err = http.ListenAndServe(":"+port, app)
+	app, err := NewFiberApp(db)
 
 	if err != nil {
 		return err
 	}
+
+	app.Listen("localhost" + ":" + port)
 
 	return nil
 }

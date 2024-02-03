@@ -4,51 +4,40 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mladenovic-13/bank-api/internal/database"
+	_ "github.com/lib/pq"
+)
+
+type Currency string
+
+const (
+	RSD Currency = "RSD"
+	USD Currency = "USD"
+	EUR Currency = "USD"
 )
 
 type Account struct {
-	ID        uuid.UUID         `json:"id"`
-	Name      string            `json:"name"`
-	Number    uuid.UUID         `json:"number"`
-	Balance   string            `json:"balance"`
-	Currency  database.Currency `json:"currency"`
-	UserID    uuid.UUID         `json:"userId"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	Name      string    `gorm:"not null" json:"name"`
+	Balance   float32   `gorm:"type:decimal(10,2);not null" json:"balance"`
+	Currency  Currency  `gorm:"not null" json:"currency"`
+	UserID    uuid.UUID `gorm:"not null" json:"userId"`
+	CreateAt  time.Time `gorm:"not null" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"not null" json:"updatedAt"`
 }
 
-func NewAccount(name string, currency database.Currency, userId uuid.UUID) *Account {
+func NewAccount(
+	accountId uuid.UUID,
+	name string,
+	currency Currency,
+	userId uuid.UUID,
+) *Account {
 	return &Account{
-		ID:        uuid.New(),
+		ID:        accountId,
 		Name:      name,
-		Number:    uuid.New(),
-		Balance:   "0.00",
+		Balance:   0,
 		Currency:  currency,
 		UserID:    userId,
-		CreatedAt: time.Now(),
+		CreateAt:  time.Now(),
 		UpdatedAt: time.Now(),
 	}
-}
-
-func ToAccount(a database.Account) *Account {
-	return &Account{
-		ID:        a.ID,
-		Name:      a.Name,
-		Number:    a.Number,
-		Balance:   a.Balance,
-		Currency:  a.Currency,
-		UserID:    a.UserID,
-		CreatedAt: a.CreatedAt,
-		UpdatedAt: a.UpdatedAt,
-	}
-}
-
-func ToAccounts(a []database.Account) []*Account {
-	accounts := []*Account{}
-	for _, dbAccount := range a {
-		accounts = append(accounts, ToAccount(dbAccount))
-	}
-
-	return accounts
 }

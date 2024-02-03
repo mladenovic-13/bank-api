@@ -9,24 +9,33 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.mladenovic13.com",
+            "email": "mladenovic13.dev@gmail.com"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/account": {
+        "/account": {
             "get": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
                 ],
-                "summary": "Retrieve user accounts",
+                "summary": "Get accounts",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Account",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -34,13 +43,16 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Account"
-                            }
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
                         }
                     }
                 }
@@ -48,7 +60,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "JwtAuth": []
+                        "Bearer Token": []
                     }
                 ],
                 "consumes": [
@@ -58,13 +70,301 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
+                ],
+                "summary": "Request to open account",
+                "parameters": [
+                    {
+                        "description": "Currency",
+                        "name": "currency",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "\"RSD\"",
+                                "\"EUR\"",
+                                "\"USD\""
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Request"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/:id": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account (Number) ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account",
+                        "schema": {
+                            "$ref": "#/definitions/models.Account"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/:id/deposit": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Request deposit to account",
+                "parameters": [
+                    {
+                        "description": "Deposit Amount",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "description": "Currency",
+                        "name": "currency",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "\"RSD\"",
+                                "\"EUR\"",
+                                "\"USD\""
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Request"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/:id/send": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "description": "Handle sending money to another account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Send money",
+                "responses": {
+                    "200": {
+                        "description": "Account",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Account"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/:id/withdraw": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Request withdraw from account",
+                "parameters": [
+                    {
+                        "description": "Withdraw Amount",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "description": "Currency",
+                        "name": "currency",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "\"RSD\"",
+                                "\"EUR\"",
+                                "\"USD\""
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Request"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/create": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "description": "Handle creating new account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
                 ],
                 "summary": "Create new account",
                 "parameters": [
                     {
-                        "description": "Account name",
-                        "name": "Name",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "\"83ed7c1d-2a43-4f55-9bdc-2cbc401490f3\""
+                        }
+                    },
+                    {
+                        "description": "Name",
+                        "name": "name",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -73,23 +373,23 @@ const docTemplate = `{
                         }
                     },
                     {
-                        "description": "Account currency",
-                        "name": "Currency",
+                        "description": "Currency",
+                        "name": "currency",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "\"USD\"",
+                                "\"RSD\"",
                                 "\"EUR\"",
-                                "\"RSD\""
+                                "\"USD\""
                             ]
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "account",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Account"
                         }
@@ -97,129 +397,105 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
+                            "$ref": "#/definitions/handler.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
+                            "$ref": "#/definitions/handler.Error"
                         }
                     }
                 }
             }
         },
-        "/v1/account/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "JwtAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
+        "/admin/delete/:id": {
+            "post": {
+                "description": "Handle deleting user's account",
                 "tags": [
-                    "accounts"
+                    "Admin"
                 ],
-                "summary": "Get account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Sender account ID(UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "account",
-                        "schema": {
-                            "$ref": "#/definitions/models.Account"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JwtAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "Delete account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Sender account ID(UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "account",
-                        "schema": {
-                            "$ref": "#/definitions/models.Account"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    }
-                }
+                "summary": "Delete user's account",
+                "responses": {}
             }
         },
-        "/v1/account/{number}/send": {
+        "/admin/deposit/:id": {
             "post": {
                 "security": [
                     {
-                        "JwtAuth": []
+                        "Bearer Token": []
+                    }
+                ],
+                "description": "Handle depositing money to requested account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Deposit money to account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account (Number) ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Amount",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "description": "Currency",
+                        "name": "currency",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "\"RSD\"",
+                                "\"EUR\"",
+                                "\"USD\""
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Account"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/request": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer Token": []
                     }
                 ],
                 "consumes": [
@@ -229,39 +505,135 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Admin"
                 ],
-                "summary": "Send money to account",
+                "summary": "Get all requests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Request"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/request/:id/process": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Process request",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Sender account number (UUID)",
-                        "name": "number",
+                        "description": "Request ID",
+                        "name": "requestID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Request"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/withdraw/:id": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "description": "Handle withdrawing money from requestd account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Withdraw money from account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account (Number) ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Receiver account number (UUID)",
-                        "name": "ToAccountNumber",
+                        "description": "Amount",
+                        "name": "amount",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "number"
                         }
                     },
                     {
-                        "description": "Receiver account currency",
-                        "name": "Currency",
+                        "description": "Currency",
+                        "name": "currency",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                                "\"RSD\"",
+                                "\"EUR\"",
+                                "\"USD\""
+                            ]
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "account",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Account"
                         }
@@ -269,19 +641,130 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
+                            "$ref": "#/definitions/handler.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.ErrorResponse"
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Handles user log-in.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User log-in",
+                "parameters": [
+                    {
+                        "description": "Body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.LoginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.LoginRes"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer Token": []
+                    }
+                ],
+                "description": "Handles user log-out.",
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User log-out",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signin": {
+            "post": {
+                "description": "Handles user sign-in.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User sign-in",
+                "parameters": [
+                    {
+                        "description": "Body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.SigninReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Error"
                         }
                     }
                 }
@@ -289,46 +772,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.ErrorResponse": {
+        "handler.Error": {
             "type": "object",
             "properties": {
-                "error": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
                     "type": "string"
                 }
             }
         },
-        "database.Currency": {
-            "type": "string",
-            "enum": [
-                "EUR",
-                "USD",
-                "RSD"
-            ],
-            "x-enum-varnames": [
-                "CurrencyEUR",
-                "CurrencyUSD",
-                "CurrencyRSD"
-            ]
+        "handler.LoginReq": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.LoginRes": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "handler.SigninReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         },
         "models.Account": {
             "type": "object",
             "properties": {
                 "balance": {
-                    "type": "string"
+                    "type": "number"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "currency": {
-                    "$ref": "#/definitions/database.Currency"
+                    "$ref": "#/definitions/models.Currency"
                 },
                 "id": {
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "number": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -338,17 +844,94 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.Currency": {
+            "type": "string",
+            "enum": [
+                "RSD",
+                "USD",
+                "USD"
+            ],
+            "x-enum-varnames": [
+                "RSD",
+                "USD",
+                "EUR"
+            ]
+        },
+        "models.Request": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "$ref": "#/definitions/models.Currency"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isProcessed": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.RequestType"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RequestType": {
+            "type": "string",
+            "enum": [
+                "OPEN_ACCOUNT",
+                "CLOSE_ACCOUNT",
+                "DEPOSIT",
+                "WITHDRAW"
+            ],
+            "x-enum-varnames": [
+                "OPEN_ACCOUNT",
+                "CLOSE_ACCOUNT",
+                "DEPOSIT",
+                "WITHDRAW"
+            ]
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
+	Title:            "Bank API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
