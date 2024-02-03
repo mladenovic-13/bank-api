@@ -1,36 +1,21 @@
 package app
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
-	"github.com/mladenovic-13/bank-api/api"
-	"github.com/mladenovic-13/bank-api/api/router"
-	"github.com/mladenovic-13/bank-api/sql"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/mladenovic-13/bank-api/router"
+	"gorm.io/gorm"
 )
 
-func SetupServer(url string) (*chi.Mux, error) {
-	db, queries, err := sql.NewPostgresStore(url)
+func NewFiberApp(db *gorm.DB) (*fiber.App, error) {
+	app := fiber.New()
 
-	if err != nil {
-		return nil, err
-	}
+	app.Use(cors.New())
 
-	apiContext := api.NewServerContext(db, queries)
-
-	app := chi.NewRouter()
-
-	corsOptions := cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}
-
-	app.Use(cors.Handler(corsOptions))
-
-	router.SetupRoutes(app, apiContext)
+	router.SetupRoutes(
+		app,
+		router.NewRouterContext(db),
+	)
 
 	return app, nil
 }

@@ -1,43 +1,421 @@
+basePath: /api/v1
 definitions:
-  api.ErrorResponse:
+  handler.Error:
     properties:
-      error:
+      code:
+        type: integer
+      message:
         type: string
     type: object
-  database.Currency:
-    enum:
-    - EUR
-    - USD
-    - RSD
-    type: string
-    x-enum-varnames:
-    - CurrencyEUR
-    - CurrencyUSD
-    - CurrencyRSD
+  handler.LoginReq:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handler.LoginRes:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  handler.SigninReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   models.Account:
     properties:
       balance:
-        type: string
+        type: number
       createdAt:
         type: string
       currency:
-        $ref: '#/definitions/database.Currency'
+        $ref: '#/definitions/models.Currency'
       id:
         type: string
       name:
-        type: string
-      number:
         type: string
       updatedAt:
         type: string
       userId:
         type: string
     type: object
+  models.Currency:
+    enum:
+    - RSD
+    - USD
+    - USD
+    type: string
+    x-enum-varnames:
+    - RSD
+    - USD
+    - EUR
+  models.Request:
+    properties:
+      amount:
+        type: number
+      createdAt:
+        type: string
+      currency:
+        $ref: '#/definitions/models.Currency'
+      id:
+        type: string
+      isProcessed:
+        type: boolean
+      type:
+        $ref: '#/definitions/models.RequestType'
+      userId:
+        type: string
+    type: object
+  models.RequestType:
+    enum:
+    - OPEN_ACCOUNT
+    - CLOSE_ACCOUNT
+    - DEPOSIT
+    - WITHDRAW
+    type: string
+    x-enum-varnames:
+    - OPEN_ACCOUNT
+    - CLOSE_ACCOUNT
+    - DEPOSIT
+    - WITHDRAW
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isAdmin:
+        type: boolean
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
 info:
-  contact: {}
+  contact:
+    email: mladenovic13.dev@gmail.com
+    name: API Support
+    url: http://www.mladenovic13.com
+  title: Bank API
+  version: "1.0"
 paths:
-  /v1/account:
+  /account:
     get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account
+          schema:
+            items:
+              $ref: '#/definitions/models.Account'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Get accounts
+      tags:
+      - Account
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Currency
+        in: body
+        name: currency
+        required: true
+        schema:
+          enum:
+          - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Request to open account
+      tags:
+      - Account
+  /account/:id:
+    get:
+      parameters:
+      - description: Account (Number) ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Get account
+      tags:
+      - Account
+  /account/:id/deposit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Deposit Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: number
+      - description: Currency
+        in: body
+        name: currency
+        required: true
+        schema:
+          enum:
+          - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Request deposit to account
+      tags:
+      - Account
+  /account/:id/send:
+    post:
+      consumes:
+      - application/json
+      description: Handle sending money to another account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account
+          schema:
+            items:
+              $ref: '#/definitions/models.Account'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Send money
+      tags:
+      - Account
+  /account/:id/withdraw:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Withdraw Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: number
+      - description: Currency
+        in: body
+        name: currency
+        required: true
+        schema:
+          enum:
+          - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Request withdraw from account
+      tags:
+      - Account
+  /admin/create:
+    post:
+      consumes:
+      - application/json
+      description: Handle creating new account
+      parameters:
+      - description: User ID
+        in: body
+        name: userId
+        required: true
+        schema:
+          example: '"83ed7c1d-2a43-4f55-9bdc-2cbc401490f3"'
+          type: string
+      - description: Name
+        in: body
+        name: name
+        required: true
+        schema:
+          example: '"Tekuci racun"'
+          type: string
+      - description: Currency
+        in: body
+        name: currency
+        required: true
+        schema:
+          enum:
+          - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Create new account
+      tags:
+      - Admin
+  /admin/delete/:id:
+    post:
+      description: Handle deleting user's account
+      responses: {}
+      summary: Delete user's account
+      tags:
+      - Admin
+  /admin/deposit/:id:
+    post:
+      consumes:
+      - application/json
+      description: Handle depositing money to requested account
+      parameters:
+      - description: Account (Number) ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Amount
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: number
+      - description: Currency
+        in: body
+        name: currency
+        required: true
+        schema:
+          enum:
+          - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Deposit money to account
+      tags:
+      - Admin
+  /admin/request:
+    get:
+      consumes:
+      - application/json
       produces:
       - application/json
       responses:
@@ -45,169 +423,171 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Account'
+              $ref: '#/definitions/models.Request'
             type: array
-        "404":
-          description: Not Found
+        "400":
+          description: Bad Request
           schema:
-            items:
-              $ref: '#/definitions/models.Account'
-            type: array
-      summary: Retrieve user accounts
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Get all requests
       tags:
-      - accounts
+      - Admin
+  /admin/request/:id/process:
     post:
       consumes:
       - application/json
       parameters:
-      - description: Account name
+      - description: Request ID
+        in: path
+        name: requestID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Request'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: Process request
+      tags:
+      - Admin
+  /admin/withdraw/:id:
+    post:
+      consumes:
+      - application/json
+      description: Handle withdrawing money from requestd account
+      parameters:
+      - description: Account (Number) ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Amount
         in: body
-        name: Name
+        name: amount
         required: true
         schema:
-          example: '"Tekuci racun"'
-          type: string
-      - description: Account currency
+          type: number
+      - description: Currency
         in: body
-        name: Currency
+        name: currency
         required: true
         schema:
           enum:
-          - '"USD"'
-          - '"EUR"'
           - '"RSD"'
+          - '"EUR"'
+          - '"USD"'
           type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: account
-          schema:
-            $ref: '#/definitions/models.Account'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-      security:
-      - JwtAuth: []
-      summary: Create new account
-      tags:
-      - accounts
-  /v1/account/{id}:
-    delete:
-      parameters:
-      - description: Sender account ID(UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
         "200":
-          description: account
+          description: OK
           schema:
             $ref: '#/definitions/models.Account'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
+            $ref: '#/definitions/handler.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.ErrorResponse'
+            $ref: '#/definitions/handler.Error'
       security:
-      - JwtAuth: []
-      summary: Delete account
+      - Bearer Token: []
+      summary: Withdraw money from account
       tags:
-      - accounts
-    get:
-      parameters:
-      - description: Sender account ID(UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: account
-          schema:
-            $ref: '#/definitions/models.Account'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
-      security:
-      - JwtAuth: []
-      summary: Get account
-      tags:
-      - accounts
-  /v1/account/{number}/send:
+      - Admin
+  /auth/login:
     post:
       consumes:
       - application/json
+      description: Handles user log-in.
       parameters:
-      - description: Sender account number (UUID)
-        in: path
-        name: number
-        required: true
-        type: string
-      - description: Receiver account number (UUID)
+      - description: Body
         in: body
-        name: ToAccountNumber
+        name: body
         required: true
         schema:
-          type: string
-      - description: Receiver account currency
-        in: body
-        name: Currency
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/handler.LoginReq'
       produces:
       - application/json
       responses:
-        "201":
-          description: account
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/models.Account'
-        "400":
-          description: Bad Request
+            $ref: '#/definitions/handler.LoginRes'
+        "404":
+          description: Not Found
           schema:
-            $ref: '#/definitions/api.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.ErrorResponse'
+            $ref: '#/definitions/handler.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.ErrorResponse'
-      security:
-      - JwtAuth: []
-      summary: Send money to account
+            $ref: '#/definitions/handler.Error'
+      summary: User log-in
       tags:
-      - accounts
+      - Authentication
+  /auth/logout:
+    post:
+      description: Handles user log-out.
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.Error'
+      security:
+      - Bearer Token: []
+      summary: User log-out
+      tags:
+      - Authentication
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Handles user sign-in.
+      parameters:
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SigninReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.Error'
+      summary: User sign-in
+      tags:
+      - Authentication
 swagger: "2.0"
